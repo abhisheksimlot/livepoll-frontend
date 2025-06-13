@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Poll - Presenter</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      color: #222;
+    }
+
+    .top-strip {
+      background-color: #4B0082;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .top-strip .logo {
+      height: 40px;
+      margin-right: 15px;
+    }
+
+    .top-strip .title {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    #main-content {
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    #questionBox {
+      margin: 2rem 0;
+      padding: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background: #f5f5f5;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      margin-top: 1rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-strip">
+    <img src="mylogo.png" alt="Logo" class="logo">
+    <span class="title">Engineering Get Together - Live Poll</span>
+  </div>
+
+  <div id="main-content">
+    <h1>Launch Conference Polls</h1>
+
+    <div id="questionBox">
+      <p><strong>Current Question:</strong></p>
+      <p id="currentQuestion">No question loaded yet</p>
+    </div>
+
+    <button onclick="launchNextPoll()">Launch Next Poll</button>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    const socket = io("http://localhost:3000");
+
+    function launchNextPoll() {
+      socket.emit("launchPoll");
+    }
+
+    socket.on("poll", (poll) => {
+      document.getElementById("currentQuestion").innerText = poll.question;
+    });
+
+    socket.on("noMorePolls", () => {
+      document.getElementById("currentQuestion").innerText = "✅ All polls completed.";
+      socket.emit("endPolling");
+    });
+  </script>
+</body>
+</html>
