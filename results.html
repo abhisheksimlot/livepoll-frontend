@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Poll - Results</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #fdfdfd;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+    }
+
+    .top-strip {
+      width: 100%;
+      background-color: #4B0082;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .top-strip .logo {
+      height: 40px;
+      margin-right: 15px;
+    }
+
+    .top-strip .title {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    canvas {
+      margin-top: 2rem;
+      width: 90vw;
+      max-width: 1000px;
+      height: 80vh;
+      background: #f9f9f9;
+      border-radius: 10px;
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-strip">
+    <img src="mylogo.png" alt="Logo" class="logo">
+    <span class="title">Engineering Get Together - Live Poll</span>
+  </div>
+
+  <canvas id="resultsChart"></canvas>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    const socket = io("http://localhost:3000");
+
+    let chart;
+    let chartData = {
+      labels: [],
+      datasets: [{
+        label: 'Votes',
+        data: [],
+        backgroundColor: ['#007bff', '#dc3545', '#ffc107', '#28a745', '#6f42c1', '#20c997']
+      }]
+    };
+
+    socket.on("poll", poll => {
+      chartData.labels = poll.options;
+      chartData.datasets[0].data = poll.options.map(() => 0);
+
+      const ctx = document.getElementById("resultsChart").getContext("2d");
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: chartData,
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            title: {
+              display: true,
+              text: poll.question,
+              font: { size: 24 }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0,
+                stepSize: 1
+              }
+            }
+          }
+        }
+      });
+    });
+
+    socket.on("results", (votes) => {
+      chartData.datasets[0].data = chartData.labels.map(label => votes[label] || 0);
+      if (chart) chart.update();
+    });
+  </script>
+</body>
+</html>

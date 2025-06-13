@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Poll - Attendee</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    .top-strip {
+      background-color: #4B0082;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .top-strip .logo {
+      height: 40px;
+      margin-right: 15px;
+    }
+
+    .top-strip .title {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    #poll {
+      margin-top: 2rem;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      margin: 0.5rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    #thankYou {
+      display: none;
+      margin-top: 2rem;
+      font-size: 1.2rem;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-strip">
+    <img src="mylogo.png" alt="Logo" class="logo">
+    <span class="title">Engineering Get Together - Live Poll</span>
+  </div>
+
+  <h1 id="status">Waiting for next poll...</h1>
+
+  <div id="poll" style="display:none;">
+    <h2 id="question"></h2>
+    <div id="options"></div>
+  </div>
+
+  <div id="thankYou">✅ Thank you for your response. Please wait for the next poll...</div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    const socket = io("http://localhost:3000");
+
+    socket.on("status", msg => {
+      document.getElementById("status").innerText = msg;
+      document.getElementById("poll").style.display = "none";
+      document.getElementById("thankYou").style.display = "none";
+    });
+
+    socket.on("poll", poll => {
+      document.getElementById("status").style.display = "none";
+      document.getElementById("poll").style.display = "block";
+      document.getElementById("thankYou").style.display = "none";
+      document.getElementById("question").innerText = poll.question;
+
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      poll.options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.innerText = opt;
+        btn.onclick = () => {
+          socket.emit("vote", opt);
+          document.getElementById("poll").style.display = "none";
+          document.getElementById("thankYou").style.display = "block";
+        };
+        optionsDiv.appendChild(btn);
+      });
+    });
+  </script>
+</body>
+</html>
